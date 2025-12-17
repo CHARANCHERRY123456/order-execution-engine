@@ -1,5 +1,5 @@
-import { buildApp } from "./src/app.js";
-import { env } from "./src/config/env.js";
+import { buildApp } from "./app.js";
+import { env } from "./config/env.js";
 
 async function startServer() {
 
