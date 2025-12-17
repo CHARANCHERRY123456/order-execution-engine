@@ -10,10 +10,10 @@ export async function orderWebSocket(app:FastifyInstance) {
         (connection , request) => {
             const {orderId} = request.params as {orderId : string}
 
-            wsManager.add(orderId , connection.socket);
+            wsManager.add(orderId , connection);
 
-            connection.socket.on("close" , ()=>{
-                wsManager.remove(orderId , connection.socket);
+            connection.on("close" , ()=>{
+                wsManager.remove(orderId , connection);
             })
         }
     )

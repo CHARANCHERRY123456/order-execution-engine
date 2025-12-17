@@ -1,4 +1,5 @@
-import WebSocket  from "@fastify/websocket";
+// import WebSocket  from "ws";
+import WebSocket from "ws";
 
 class WebSocketManager {
     private connections = new Map<string, Set<WebSocket>>();
@@ -14,13 +15,18 @@ class WebSocketManager {
         this.connections.get(orderId)?.delete(socket);
     }
 
-    emit(orderId: string, message: string) {
-        const sockets = this.connections.get(orderId);
-        if(!sockets) return;
-        for (const socket of sockets) {
-            socket.send(message);
-        }
+    emit(orderId: string, payload: unknown) {
+    const sockets = this.connections.get(orderId);
+    if (!sockets) return;
+
+    const message = JSON.stringify(payload);
+
+    for (const socket of sockets) {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(message);
+      }
     }
+  }
 }
 
 export const wsManager = new WebSocketManager();
