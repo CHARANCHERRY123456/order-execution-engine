@@ -1,0 +1,66 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript build / compiled output
+dist/
+build/
+lib/
+*.tsbuildinfo
+
+# TypeScript and JS artifacts
+*.js
+*.js.map
+*.d.ts
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Environment variables
+.env
+.env.*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+.cache/
+tmp/
+temp/
+*.local
+
+# Secrets / certs
+*.pem
+*.key
+*.crt
+
+# Docker overrides
+docker-compose.override.yml
+
+# PM2
+.pm2/
+
+# Optional: ignore lockfile if you generate it locally (uncomment if needed)
+# package-lock.json
