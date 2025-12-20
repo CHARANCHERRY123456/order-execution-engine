@@ -1,16 +1,12 @@
 import fastify from 'fastify';
 import loggerOptions from './config/logger.js';
 import websocket from "@fastify/websocket";
-import { logger } from './config/logger.js';
-import { OrderService } from './modules/orders/order.service.js';
 import { orderRoutes } from './modules/orders/order.routes.js';
 import { orderWebSocket } from './modules/orders/order.ws.js';
 
 export function buildApp() {
-    // enable ignoreTrailingSlash so routes match with or without trailing slash
     const app = fastify({ logger: loggerOptions, ignoreTrailingSlash: true });
 
-    // keep it extremely simple: store start time with Date.now()
     app.addHook('onRequest', (request, reply, done) => {
         (request as any).startTime = Date.now();
         done();

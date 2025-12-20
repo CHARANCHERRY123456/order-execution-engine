@@ -2,8 +2,9 @@
 import WebSocket from 'ws';
 
 class WebSocketManager {
+  // orderId => Set of WebSocket connections
   private connections = new Map<string, Set<WebSocket>>();
-  // keep last known state per orderId so new clients get current status
+  // orderId => last emitted state
   private lastState = new Map<string, unknown>();
 
   add(orderId: string, socket: WebSocket) {
@@ -12,7 +13,6 @@ class WebSocketManager {
     }
     this.connections.get(orderId)!.add(socket);
 
-    // send last known state immediately if we have one
     const last = this.lastState.get(orderId);
     if (last && socket.readyState === WebSocket.OPEN) {
       try {
@@ -28,7 +28,6 @@ class WebSocketManager {
   }
 
   emit(orderId: string, payload: unknown) {
-    // update cached state
     this.lastState.set(orderId, payload);
 
     const sockets = this.connections.get(orderId);
