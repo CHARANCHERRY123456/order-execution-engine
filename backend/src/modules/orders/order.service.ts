@@ -1,13 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
 import { orderQueue } from "./queue/order.queue";
+import { OrderInput } from "./dex/dex.types";
 
 export class OrderService {
-  async executeOrder(){
+  async executeOrder(orderData: OrderInput){
     const orderId = uuidv4();
 
     await orderQueue.add(
       "execute-order",
-      { orderId },
+      { orderId, orderData },
       {
         attempts : 3,
         backoff : {
@@ -17,7 +18,7 @@ export class OrderService {
       }
     )
 
-    return {orderId};
+    return { orderId, order: orderData };
   };
 
    
