@@ -18,7 +18,7 @@ export async function executeOrderHandler(
     // Validate input
     const { tokenIn, tokenOut, amount, slippage } = req.body || {};
     
-    if (!tokenIn || !tokenOut || !amount) {
+    if (!tokenIn || !tokenOut || amount === undefined || amount === null) {
         return reply.status(400).send({
             error: 'Missing required fields',
             required: ['tokenIn', 'tokenOut', 'amount']
