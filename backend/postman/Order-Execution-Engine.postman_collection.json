@@ -1,0 +1,100 @@
+{
+  "info": {
+    "name": "Order Execution Engine",
+    "_postman_id": "order-execution-engine-collection",
+    "description": "Collection for API and WebSocket flows for the mock Order Execution Engine. Use a Postman environment with `baseUrl` and `baseWs` set (e.g. http://127.0.0.1:8080 and ws://127.0.0.1:8080). Includes valid and invalid HTTP cases and WebSocket usage notes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8080" },
+    { "key": "baseWs", "value": "ws://127.0.0.1:8080" },
+    { "key": "orderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Execute Order - Valid",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amount\": 100,\n  \"slippage\": 0.5\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": { "raw": "{{baseUrl}}/api/orders/execute" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "const json = pm.response.json();",
+              "pm.test('response has orderId', function () { pm.expect(json).to.have.property('orderId'); });",
+              "// Save orderId for later (WS connect) into the active Environment",
+              "if (json && json.orderId) pm.environment.set('orderId', json.orderId);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Execute Order - Missing Fields (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/orders/execute" }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('status is 400', function () { pm.response.to.have.status(400); });" ] } } ],
+      "response": []
+    },
+    {
+      "name": "Execute Order - Zero Amount (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amount\": 0\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/orders/execute" }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('status is 400 for zero amount', function () { pm.response.to.have.status(400); });" ] } } ],
+      "response": []
+    },
+    {
+      "name": "WebSocket Connect - Manual (instructions)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseWs}}/ws/orders/{{orderId}}" }
+      },
+      "response": [],
+      "description": "This is a manual WebSocket connect helper. Postman supports WebSocket connections in the app. To use:\n1) Make sure you have an Environment selected with `baseUrl` and `baseWs` variables set (e.g. http://127.0.0.1:8080 and ws://127.0.0.1:8080).\n2) Run the `Execute Order - Valid` request to obtain `orderId` (it will be saved to your active Environment variable `orderId`).\n3) Open this WebSocket request and connect to `{{baseWs}}/ws/orders/{{orderId}}`.\n4) You will receive the full state history (or live updates) for that order.\nNotes:\n- If you connect after the order has progressed, the manager replays the entire state history.\n- Postman cannot run automated WS scripts that depend on background worker timing; for automated end-to-end tests, use the provided `test-client.js` or a small Node script."
+    },
+    {
+      "name": "Execute Order - Large Amount (edge)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amount\": 1000000,\n  \"slippage\": 1\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/orders/execute" }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('status is 200 or 202', function () { pm.expect([200,202]).to.include(pm.response.code); });" ] } } ],
+      "response": []
+    },
+    {
+      "name": "Execute Order - Invalid Slippage (400)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amount\": 10,\n  \"slippage\": -5\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/orders/execute" }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('status is 400 for invalid slippage', function () { pm.response.to.have.status(400); });" ] } } ],
+      "response": []
+    }
+  ]
+}
