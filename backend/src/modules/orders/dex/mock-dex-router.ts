@@ -43,7 +43,7 @@ export class MockDexRouter {
       outputAmount,
       fee,
       priceImpact
-    }, 'DEX quote received');
+    }, `\[ROUTER\] Raydium quote: price=${price.toFixed(2)} fee=${fee}`);
 
     return {
       dexName: 'Raydium',
@@ -77,7 +77,7 @@ export class MockDexRouter {
       outputAmount,
       fee,
       priceImpact
-    }, 'DEX quote received');
+    }, `\[ROUTER\] Meteora quote: price=${price.toFixed(2)} fee=${fee}`);
 
     return {
       dexName: 'Meteora',
@@ -110,7 +110,7 @@ export class MockDexRouter {
       meteora: meteoraQuote.outputAmount,
       selected: bestQuote.dexName,
       savingsPercent: percentageDiff.toFixed(2)
-    }, 'DEX routing decision');
+    }, `\[ROUTER\] Selected DEX: ${bestQuote.dexName} (savings=${percentageDiff.toFixed(2)}%)`);
 
     return bestQuote;
   }
@@ -137,7 +137,7 @@ export class MockDexRouter {
       executedPrice,
       outputAmount: finalOutputAmount,
       executionTimeMs: executionTime
-    }, 'Swap executed successfully');
+    }, `\[EXECUTION\] Swap executed: txHash=${txHash} price=${executedPrice.toFixed(2)}`);
 
     return {
       txHash,

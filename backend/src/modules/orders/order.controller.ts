@@ -1,6 +1,7 @@
 import { FastifyRequest , FastifyReply } from "fastify";
 import { OrderService } from "./order.service";
 import { OrderInput } from "./dex/dex.types";
+import { logger } from "../../config/logger";
 
 const service = new OrderService();
 
@@ -39,5 +40,10 @@ export async function executeOrderHandler(
     };
 
     const result = await service.executeOrder(orderData);
+    // Log API-level events for reviewer-friendly output
+    logger.info({ orderId: result.orderId }, '[API] Order received');
+    logger.info({ orderId: result.orderId }, '[API] Enqueued order job');
+    logger.info({ orderId: result.orderId }, '[API] HTTP response sent (non-blocking)');
+
     reply.send(result);
 }

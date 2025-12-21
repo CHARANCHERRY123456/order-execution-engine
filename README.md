@@ -1,5 +1,8 @@
 # 🚀 Order Execution Engine
 
+# Video Link : https://www.loom.com/share/67faca25d2544ac3b1f2f663d34c86ce
+# Live Link : https://order-execution-engine-trxe.onrender.com
+
 A high-performance order execution engine for Solana DEX trading with real-time WebSocket updates and intelligent DEX routing between Raydium and Meteora.
 
 ## 📋 Table of Contents
@@ -403,6 +406,11 @@ ws.onmessage = (event) => {
   console.log('Status:', update.state);
 };
 ```
+
+### WebSocket Behavior
+
+Clients may connect at any time using an `orderId`. If the order has already progressed, the server replays all completed states (in order) before streaming live updates. This provides full visibility into the order lifecycle (pending → routing → building → submitted → confirmed/failed) for late subscribers.
+
 
 ---
 
