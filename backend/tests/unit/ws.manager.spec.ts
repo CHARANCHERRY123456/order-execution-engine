@@ -56,13 +56,22 @@ describe("WebSocket Manager", () => {
             expect(connections.has(socket2)).toBe(true);
         });
 
-        it("sends last known state to new connections", () => {
-            const state = { orderId, state: "pending" };
-            wsManager.emit(orderId, state);
+        it("replays entire state history to late joiner", () => {
+            const state1 = { orderId, state: "pending" };
+            const state2 = { orderId, state: "routing" };
+            const state3 = { orderId, state: "confirmed" };
+            
+            wsManager.emit(orderId, state1);
+            wsManager.emit(orderId, state2);
+            wsManager.emit(orderId, state3);
 
             wsManager.add(orderId, socket1 as any);
 
-            expect(socket1.send).toHaveBeenCalledWith(JSON.stringify(state));
+            // Late joiner should receive all 3 states in order
+            expect(socket1.send).toHaveBeenCalledTimes(3);
+            expect(socket1.send).toHaveBeenNthCalledWith(1, JSON.stringify(state1));
+            expect(socket1.send).toHaveBeenNthCalledWith(2, JSON.stringify(state2));
+            expect(socket1.send).toHaveBeenNthCalledWith(3, JSON.stringify(state3));
         });
 
         it("does not send anything if no previous state exists", () => {
@@ -190,34 +199,40 @@ describe("WebSocket Manager", () => {
     });
 
     describe("State Caching", () => {
-        it("late joiners receive current state immediately", () => {
+        it("late joiners receive entire state history in order", () => {
             // First connection emits some updates
             wsManager.add(orderId, socket1 as any);
+            wsManager.emit(orderId, { orderId, state: "pending" });
             wsManager.emit(orderId, { orderId, state: "routing" });
-            wsManager.emit(orderId, { orderId, state: "building" });
+            wsManager.emit(orderId, { orderId, state: "confirmed" });
 
             // Late joiner connects
             const socket3 = new MockWebSocket();
             wsManager.add(orderId, socket3 as any);
 
-            // Should receive the last state
-            expect(socket3.send).toHaveBeenCalledWith(
-                JSON.stringify({ orderId, state: "building" })
-            );
+            // Should receive all states in order
+            expect(socket3.send).toHaveBeenCalledTimes(3);
+            expect(socket3.send).toHaveBeenNthCalledWith(1, JSON.stringify({ orderId, state: "pending" }));
+            expect(socket3.send).toHaveBeenNthCalledWith(2, JSON.stringify({ orderId, state: "routing" }));
+            expect(socket3.send).toHaveBeenNthCalledWith(3, JSON.stringify({ orderId, state: "confirmed" }));
         });
 
-        it("maintains separate state for different orderIds", () => {
+        it("maintains separate history for different orderIds", () => {
             const orderId1 = "order-1";
             const orderId2 = "order-2";
 
             wsManager.emit(orderId1, { orderId: orderId1, state: "routing" });
-            wsManager.emit(orderId2, { orderId: orderId2, state: "confirmed" });
+            wsManager.emit(orderId1, { orderId: orderId1, state: "confirmed" });
+            wsManager.emit(orderId2, { orderId: orderId2, state: "pending" });
 
-            const state1 = (wsManager as any).lastState.get(orderId1);
-            const state2 = (wsManager as any).lastState.get(orderId2);
+            const history1 = (wsManager as any).stateHistory.get(orderId1);
+            const history2 = (wsManager as any).stateHistory.get(orderId2);
 
-            expect(state1.state).toBe("routing");
-            expect(state2.state).toBe("confirmed");
+            expect(history1).toHaveLength(2);
+            expect(history2).toHaveLength(1);
+            expect(history1[0].state).toBe("routing");
+            expect(history1[1].state).toBe("confirmed");
+            expect(history2[0].state).toBe("pending");
         });
     });
 });
